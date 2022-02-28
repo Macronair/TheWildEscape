@@ -37,12 +37,6 @@ import teamdjg.wildescape.carepackage.commands.SetPlayerRank;
 import teamdjg.wildescape.commandHandler.CommandManager;
 //
 import teamdjg.wildescape.worldborder.WorldborderMechanics;
-import teamdjg.wildescape.worldborderCommands.WorldborderCentercommand;
-import teamdjg.wildescape.worldborderCommands.WorldborderPauzecommand;
-import teamdjg.wildescape.worldborderCommands.WorldborderResumecommand;
-import teamdjg.wildescape.worldborderCommands.WorldborderSetupcommand;
-import teamdjg.wildescape.worldborderCommands.WorldborderStartercommand;
-import teamdjg.wildescape.worldborderCommands.WorldborderStopcommand;
 
 public class Main extends JavaPlugin implements Listener 
 {
@@ -94,7 +88,7 @@ public class Main extends JavaPlugin implements Listener
 		//TODO load from configfile the worldborder values		
 		
 		//set up references
-		new Eventhandler(this);
+		//new Eventhandler(this);
 		
 		//command manager
 		commandManager = new CommandManager(this, "TWE");
@@ -118,33 +112,36 @@ public class Main extends JavaPlugin implements Listener
 		commandManager.addCommand(new RemoveAllCarepackages(this));
 		
 		//world border mechanics
-		_WorldborderMechanics = new WorldborderMechanics(this);
+		//_WorldborderMechanics = new WorldborderMechanics(this);
 		
 		//player rank management
-		playerRanks = new HashMap<UUID, PlayerRank>();
-		CarePackageManager.reloadPlayerRanks(this, playerRanks);
+		//playerRanks = new HashMap<UUID, PlayerRank>();
+		//CarePackageManager.reloadPlayerRanks(this, playerRanks);
 		
 		//carepackage managment
-		carepackageManager = new CarePackageManager(this);
-		carepackageManager.loadProfilesFromConfig(this);
-		carepackageManager.loadCarepackagesFromConfig();
+		//carepackageManager = new CarePackageManager(this);
+		//carepackageManager.loadProfilesFromConfig(this);
+		//carepackageManager.loadCarepackagesFromConfig();
 		
 		//chathearingdistace managment
+		/*
 		if(getConfig().contains("chathearingdistance")){
 			chatHearingDistance = getConfig().getLong("chathearingdistance");
 		}else{
 			getConfig().set("chathearingdistance", chatHearingDistance);
 			saveConfig();
 		}
+		*/
 		
 		//Border commands
+		/*
 		this.getCommand("bordersetup").setExecutor(new WorldborderSetupcommand(this));
 		this.getCommand("bordercenter").setExecutor(new WorldborderCentercommand(this));
 		this.getCommand("borderstart").setExecutor(new WorldborderStartercommand(this));
 		this.getCommand("borderstop").setExecutor(new WorldborderStopcommand(this));
 		this.getCommand("borderpauze").setExecutor(new WorldborderPauzecommand(this));
 		this.getCommand("borderresume").setExecutor(new WorldborderResumecommand(this));
-
+		*/
 		System.out.println(pluginPrefix + "PLUGIN ENABLED!");
 		
 	}

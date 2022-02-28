@@ -9,6 +9,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ClickEvent.Action;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
+import net.minecraft.world.inventory.ClickAction;
 import teamdjg.wildescape.main.Main;
 
 
@@ -47,96 +53,36 @@ public class CommandManager implements CommandExecutor{
 			
 			if(args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("h"))
 			{
-				if(args.length == 1)
-				{					
-					if(commands.size() > commandsPerPage)
-					{
-						sender.sendMessage(ChatColor.GOLD + "<--" + ChatColor.DARK_RED + "TWE commands" + ChatColor.GOLD + "--" + ChatColor.DARK_RED + "Page: 1/" + main.getFitableAmountByAmount(commands.size(), commandsPerPage) + ChatColor.GOLD + "-->");
-						sender.sendMessage(ChatColor.GOLD + "/" + mainCommand + " help" + ChatColor.WHITE + ": gives all commands");
-						sender.sendMessage(ChatColor.GOLD + "/" + mainCommand + " help " + "<" + mainCommand + " command / help index>" + ChatColor.WHITE + ": gives the usage");
-						for(int i = 0; i < commandsPerPage; i++)
-						{
-							StringBuilder string = new StringBuilder();
-							string.append(ChatColor.GOLD + "/");
-							string.append(mainCommand + " " + commands.get(i).name() + ChatColor.WHITE + ": ");
-							string.append(commands.get(i).info());
-							sender.sendMessage(string.toString());
-						}
-						sender.sendMessage(ChatColor.GOLD + "<--- " + "type: /" + mainCommand + " help (page): for more help --->");
-						
+				clearChat(sender);
+				int maximumPage = (int) Math.floor(commands.size() / commandsPerPage);
+				
+				
+				if(args.length > 1)
+				{
+					int currentPageNumber = -1;
+					
+					try {					
+						currentPageNumber = Integer.parseInt(args[1]);						
+					} catch (Exception e) {
+						sender.sendMessage(ChatColor.RED + "The help command expected a number");
 					}
-					else
-					{
-						sender.sendMessage(ChatColor.GOLD + "<--------------" + ChatColor.DARK_RED + "TWE commands" + ChatColor.GOLD + "-------------->");
-						sender.sendMessage(ChatColor.GOLD + "/" + mainCommand + " help" + ChatColor.WHITE + ": gives all commands");
-						sender.sendMessage(ChatColor.GOLD + "/" + mainCommand + " help " + "<" + mainCommand + " command / help index>" + ChatColor.WHITE + ": gives the usage or other commands");
-						for(SubCommand currentCommand : commands)
-						{
-							StringBuilder string = new StringBuilder();
-							string.append(ChatColor.GOLD + "/");
-							string.append(mainCommand + " " + currentCommand.name() + ChatColor.WHITE + ": ");
-							string.append(currentCommand.info());
-							sender.sendMessage(string.toString());
-						}
-						sender.sendMessage(ChatColor.GOLD + "<---------------------------------------->");
-					}
+					sendBeginOfCommandList(currentPageNumber,maximumPage,sender);
+					sendEndOfCommandList(currentPageNumber,maximumPage,sender);
 				}
 				else
-				{
-					SubCommand subcommand = getCommand(args[1]);
-					
-					if(subcommand == null)
-					{
-						int page = 0;
-						
-						try
-						{
-							page = Integer.parseInt(args[1]);
-						}
-						catch(Exception e)
-						{
-							sender.sendMessage(ChatColor.RED + "Invalid command");
-							return true;
-						}
-						
-						if(page > main.getFitableAmountByAmount(commands.size(), commandsPerPage))
-						{
-							sender.sendMessage(ChatColor.RED + "That page doesn't exist");
-							return true;
-						}
-						
-						sender.sendMessage(ChatColor.GOLD + "<--" + ChatColor.DARK_RED + "TWE commands" + ChatColor.GOLD + "--" + ChatColor.DARK_RED + "Page: " + page + "/" + main.getFitableAmountByAmount(commands.size(), commandsPerPage) + ChatColor.GOLD + "-->");						
-						for(int i = 0 + (commandsPerPage * (page - 1)); i < commandsPerPage + (commandsPerPage * (page - 1)); i++)
-						{
-							if(i < commands.size())
-							{
-								StringBuilder string = new StringBuilder();
-								string.append(ChatColor.GOLD + "/");
-								string.append(mainCommand + " " + commands.get(i).name() + ChatColor.WHITE + ": ");
-								string.append(commands.get(i).info());
-								sender.sendMessage(string.toString());
-							}
-						}
-						
-						sender.sendMessage(ChatColor.GOLD + "<--- " + "type: /" + mainCommand + " help (page): for more help --->");
-						return true;
-					}
-					
-					sender.sendMessage(ChatColor.GOLD + "<-- " + ChatColor.DARK_RED + mainCommand + " usage of " + subcommand.name() + ChatColor.GOLD + " -->");
-					sender.sendMessage(ChatColor.GOLD + "/" + mainCommand + " help " + subcommand.name() + ChatColor.WHITE + ": " + subcommand.usage());
-					sender.sendMessage(ChatColor.GOLD + "<---------------------------------------->");
-				}
-				
-				
+				{	
+					sendBeginOfCommandList(0,maximumPage,sender);
+					sendEndOfCommandList(0,maximumPage,sender);				
+				}				
 				return true;
 			}
 			
-			SubCommand currentCommand = this.getCommand(args[0]);
+			SubCommand currentCommand = this.getSubCommand(args[0]);
 			
 			
 			if(currentCommand == null)
 			{
-				sender.sendMessage(ChatColor.RED + "Invalid command");
+				sender.sendMessage(ChatColor.RED + "Unkown command");
 				return true;
 			}
 			
@@ -152,11 +98,9 @@ public class CommandManager implements CommandExecutor{
 			}
 			catch(Exception e)
 			{
-				sender.sendMessage(ChatColor.RED + "ERROR in command handler");
+				sender.sendMessage(ChatColor.RED + "ERROR in command manager");
 				e.printStackTrace();
-			}
-			
-			
+			}			
 		}
 		
 		
@@ -164,27 +108,94 @@ public class CommandManager implements CommandExecutor{
 	}
 	
 
-	private SubCommand getCommand(String commandName)
+	private void clearChat(CommandSender sender)
+	{
+		for (int i = 0; i < 10; i++) {
+			sender.sendMessage("");
+		}
+	}
+	
+	private void sendBeginOfCommandList(int currentPage, int maxPages, CommandSender sender)
+	{
+		sender.sendMessage(ChatColor.GOLD + "-------[ " + ChatColor.RED + currentPage + ChatColor.GOLD + "/" + ChatColor.RED + maxPages + ChatColor.GOLD + " ]-------");
+	}
+	
+	private void sendEndOfCommandList(int currentPage, int maxPages, CommandSender sender)
+	{
+		if (currentPage == 0) {
+			TextComponent a = new TextComponent("-----[ ");
+			TextComponent b = new TextComponent(" ]-----");
+			
+			a.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			b.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			
+			TextComponent bigRight = new TextComponent(">>>>>>>>");
+			bigRight.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + mainCommand + " help " + (currentPage+1)));
+			bigRight.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Next")));
+			bigRight.setColor(net.md_5.bungee.api.ChatColor.RED);
+			
+			sender.spigot().sendMessage(a,bigRight,b);
+		}
+		else if (currentPage == maxPages)
+		{
+			TextComponent a = new TextComponent("-----[ ");
+			TextComponent b = new TextComponent(" ]-----");
+			
+			a.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			b.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			
+			TextComponent bigLeft = new TextComponent("<<<<<<<<");
+			bigLeft.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + mainCommand + " help " + (currentPage-1)));
+			bigLeft.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Prev")));
+			bigLeft.setColor(net.md_5.bungee.api.ChatColor.RED);
+			
+			sender.spigot().sendMessage(a,bigLeft,b);		
+		}
+		else
+		{
+			TextComponent smallLeft = new TextComponent("<<<");
+			TextComponent smallRight = new TextComponent(">>>");
+			smallLeft.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + mainCommand + " help " + (currentPage-1)));
+			smallLeft.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Prev")));
+			smallLeft.setColor(net.md_5.bungee.api.ChatColor.RED);
+			
+			smallRight.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + mainCommand + " help " + (currentPage+1)));
+			smallRight.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Next")));
+			smallRight.setColor(net.md_5.bungee.api.ChatColor.RED);
+			
+			TextComponent a = new TextComponent("-----[ ");
+			TextComponent b = new TextComponent(" ]-----");
+			TextComponent c = new TextComponent(" | ");
+			a.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			b.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			c.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			
+			sender.spigot().sendMessage(a, smallLeft, c, smallRight, b);	
+			
+		}
+	}
+	
+	private SubCommand getSubCommand(String commandName)
 	{
 		Iterator<SubCommand> subCommands = this.commands.iterator();
 		
 		while(subCommands.hasNext())
 		{
-			SubCommand sc = (SubCommand) subCommands.next();
+			SubCommand currentSubCommand = (SubCommand) subCommands.next();
 			
-			if(sc.name().equalsIgnoreCase(commandName))
+			if(currentSubCommand.name().equalsIgnoreCase(commandName))
 			{
-				return sc;
+				return currentSubCommand;
 			}
 			
-			String[] aliases = sc.aliases();
+			String[] aliases = currentSubCommand.aliases();
 			
 			for(int i = 0; i < aliases.length; i++)
 			{
 				String alias = aliases[i];
 				if(commandName.equalsIgnoreCase(alias))
 				{
-					return sc;
+					return currentSubCommand;
 				}
 			}
 			

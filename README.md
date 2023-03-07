@@ -5,6 +5,11 @@
 ## Functies
 
 ## Commando's / Permissies
+### Akgeneen
+
+### Teams
+
+### CarePackages
 
 ## Ondersteunde versies
 Momenteel worden de volgende versies ondersteund:

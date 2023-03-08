@@ -35,12 +35,22 @@ import teamdjg.wildescape.carepackage.commands.SetDroppingAmount;
 import teamdjg.wildescape.carepackage.commands.SetDroppingChance;
 import teamdjg.wildescape.carepackage.commands.SetPlayerRank;
 import teamdjg.wildescape.commandHandler.CommandManager;
+import teamdjg.wildescape.teams.Teams;
+import teamdjg.wildescape.teamsCommands.TeamsAddPlayer;
+import teamdjg.wildescape.teamsCommands.TeamsRemovePlayer;
+import teamdjg.wildescape.teamsCommands.TeamsShowCurrentTeam;
 //
 import teamdjg.wildescape.worldborder.WorldborderMechanics;
+import teamdjg.wildescape.worldborderCommands.WorldBorderCenter;
+import teamdjg.wildescape.worldborderCommands.WorldBorderPause;
+import teamdjg.wildescape.worldborderCommands.WorldBorderResume;
+import teamdjg.wildescape.worldborderCommands.WorldBorderSetup;
+import teamdjg.wildescape.worldborderCommands.WorldBorderStart;
+import teamdjg.wildescape.worldborderCommands.WorldBorderStop;
 
 public class Main extends JavaPlugin implements Listener 
 {
-	public String pluginPrefix = ChatColor.DARK_GRAY +  "[" + ChatColor.BLUE + "DJG TWE" + ChatColor.DARK_GRAY + "] " + ChatColor.RESET;
+	public String pluginPrefix = ChatColor.DARK_GRAY +  "[" + ChatColor.BLUE + "TWE" + ChatColor.DARK_GRAY + "] " + ChatColor.RESET;
 	
 	//world border variables -------------------------
 	public WorldborderMechanics _WorldborderMechanics;	
@@ -87,13 +97,13 @@ public class Main extends JavaPlugin implements Listener
 	{	
 		//TODO load from configfile the worldborder values		
 		
-		//set up references
-		//new Eventhandler(this);
+		// The event handler (comes in handy)
+		new Eventhandler(this);
 		
-		//command manager
+		// Initialize the command manager
 		commandManager = new CommandManager(this, "TWE");
 		
-		//adding command
+		// Commands | CarePackages
 		commandManager.addCommand(new PlayerRanks());
 		commandManager.addCommand(new SetPlayerRank(this));
 		commandManager.addCommand(new SetChatHearingDistance(this));
@@ -111,19 +121,33 @@ public class Main extends JavaPlugin implements Listener
 		commandManager.addCommand(new DroppingTimeList(this));
 		commandManager.addCommand(new RemoveAllCarepackages(this));
 		
-		//world border mechanics
-		//_WorldborderMechanics = new WorldborderMechanics(this);
+		// Commands | WorldBorder
+		commandManager.addCommand(new WorldBorderCenter(this));
+		commandManager.addCommand(new WorldBorderPause(this));
+		commandManager.addCommand(new WorldBorderResume(this));
+		commandManager.addCommand(new WorldBorderSetup(this));
+		commandManager.addCommand(new WorldBorderStart(this));
+		commandManager.addCommand(new WorldBorderStop(this));
 		
-		//player rank management
-		//playerRanks = new HashMap<UUID, PlayerRank>();
-		//CarePackageManager.reloadPlayerRanks(this, playerRanks);
+		// Commands | Teams
+		commandManager.addCommand(new TeamsAddPlayer(this));
+		commandManager.addCommand(new TeamsRemovePlayer(this));
+		commandManager.addCommand(new TeamsShowCurrentTeam(this));
 		
-		//carepackage managment
-		//carepackageManager = new CarePackageManager(this);
-		//carepackageManager.loadProfilesFromConfig(this);
-		//carepackageManager.loadCarepackagesFromConfig();
 		
-		//chathearingdistace managment
+		// Management | WorldBorder Mechanics
+		_WorldborderMechanics = new WorldborderMechanics(this);
+		
+		// Management | PlayerRanks
+		playerRanks = new HashMap<UUID, PlayerRank>();
+		CarePackageManager.reloadPlayerRanks(this, playerRanks);
+		
+		// Management | CarePackages
+		carepackageManager = new CarePackageManager(this);
+		carepackageManager.loadProfilesFromConfig(this);
+		carepackageManager.loadCarepackagesFromConfig();
+		
+		// Management | Distance Chat
 		/*
 		if(getConfig().contains("chathearingdistance")){
 			chatHearingDistance = getConfig().getLong("chathearingdistance");
@@ -133,15 +157,10 @@ public class Main extends JavaPlugin implements Listener
 		}
 		*/
 		
-		//Border commands
-		/*
-		this.getCommand("bordersetup").setExecutor(new WorldborderSetupcommand(this));
-		this.getCommand("bordercenter").setExecutor(new WorldborderCentercommand(this));
-		this.getCommand("borderstart").setExecutor(new WorldborderStartercommand(this));
-		this.getCommand("borderstop").setExecutor(new WorldborderStopcommand(this));
-		this.getCommand("borderpauze").setExecutor(new WorldborderPauzecommand(this));
-		this.getCommand("borderresume").setExecutor(new WorldborderResumecommand(this));
-		*/
+		// Management | Teams
+		Teams.clearTeams();
+		Teams.registerTeams();
+		
 		System.out.println(pluginPrefix + "PLUGIN ENABLED!");
 		
 	}
@@ -150,6 +169,8 @@ public class Main extends JavaPlugin implements Listener
 	public void onDisable() 
 	{	
 		//TODO save the current worldborder values to the configfile
+		
+		Teams.clearTeams();
 		
 		getServer().getScheduler().cancelTasks(this);
 		System.out.println(pluginPrefix + "PLUGIN DISABLED!");

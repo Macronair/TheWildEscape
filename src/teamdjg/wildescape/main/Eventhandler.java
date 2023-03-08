@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -21,6 +22,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import teamdjg.wildescape.carepackage.CarePackageProfile;
 import teamdjg.wildescape.carepackage.PlayerRank;
+import teamdjg.wildescape.teams.Teams;
+import teamdjg.wildescape.teams.TeamsType;
 
 public class Eventhandler implements Listener
 {
@@ -50,6 +53,9 @@ public class Eventhandler implements Listener
 		{
 			e.getPlayer().setGameMode(GameMode.SPECTATOR);
 		}
+		
+		Player player = e.getPlayer();
+		player.setScoreboard(Teams.twe);
 	}
 	
 	@EventHandler
@@ -59,12 +65,14 @@ public class Eventhandler implements Listener
 		{
 			main.playerRanks.remove(e.getPlayer().getUniqueId());
 		}
+		
+		Player player = e.getPlayer();
+		player.setScoreboard(Teams.twe);
 	}
 
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent e)
 	{				
-		
 		if(main.GameRunning)
 		{
 			Player p = e.getPlayer();
@@ -179,25 +187,56 @@ public class Eventhandler implements Listener
 	public void onChat(AsyncPlayerChatEvent e)
 	{
 		String prefix = null;
+		StringBuilder chatPrefix = new StringBuilder();
 		
-		if(main.playerRanks.containsKey(e.getPlayer().getUniqueId()))
-		{
-			switch(main.playerRanks.get(e.getPlayer().getUniqueId()))
-			{
-			case ALFAWOLF:
-				prefix = ChatColor.DARK_GRAY + "[" + ChatColor.DARK_RED + "Alfawolf" + ChatColor.DARK_GRAY + "]" + ChatColor.RESET;
-				break;
-			case HUNTERS:
-				prefix = ChatColor.DARK_GRAY + "[" + ChatColor.BLUE + "Hunter" + ChatColor.DARK_GRAY + "]" + ChatColor.RESET;
-				break;
-			
-			default:
-				prefix = "[NoClass]"; 
-				break;
-			}
+		//if(main.playerRanks.containsKey(e.getPlayer().getUniqueId()))
+		//{
+		//	switch(main.playerRanks.get(e.getPlayer().getUniqueId()))
+		//	{
+		//	case ALFAWOLF:
+		//		prefix = ChatColor.DARK_GRAY + "[" + ChatColor.DARK_RED + "Alfawolf" + ChatColor.DARK_GRAY + "]" + ChatColor.RESET;
+		//		break;
+		//	case HUNTERS:
+		//		prefix = ChatColor.DARK_GRAY + "[" + ChatColor.BLUE + "Hunter" + ChatColor.DARK_GRAY + "]" + ChatColor.RESET;
+		//		break;
+		//	
+		//	default:
+		//		prefix = "[NoClass]"; 
+		//		break;
+		//	}
+		//}
+		
+		switch(Teams.getTeamType(e.getPlayer())) {
+		case GUARD:
+			prefix = Teams.GuardPrefix + ChatColor.WHITE;
+			break;
+		case BLUE:
+			prefix = Teams.BluePrefix;
+			break;
+		case GREEN:
+			prefix = Teams.GreenPrefix;
+			break;
+		case YELLOW:
+			prefix = Teams.YellowPrefix;
+			break;
+		case RED:
+			prefix = Teams.RedPrefix;
+			break;
+		case PINK:
+			prefix = Teams.PinkPrefix;
+			break;
+		case PURPLE:
+			prefix = Teams.PurplePrefix;
+			break;
+		default:
+			prefix = ChatColor.GRAY + "[Speler]";
+			break;
 		}
 		
-		e.setFormat(prefix + " " + e.getPlayer().getDisplayName() + ": " + e.getMessage());
+		chatPrefix.append(prefix);
+		chatPrefix.append(" ");
+		
+		e.setFormat(chatPrefix.toString() + e.getPlayer().getDisplayName() + ": " + e.getMessage());
 		
 		for(Player recievingPlayer : e.getRecipients())
 		{
@@ -207,7 +246,79 @@ public class Eventhandler implements Listener
 				recievingPlayer.sendMessage(ChatColor.RED + "Someone said: " + ChatColor.WHITE + e.getMessage());
 			}
 		}
+	}
+	
+	@EventHandler
+	public void OnDeath(PlayerDeathEvent e) {
+		Player killer = e.getEntity().getKiller();
+		Player loser = e.getEntity().getPlayer();
 		
+		StringBuilder prKiller = new StringBuilder();
+		StringBuilder prLoser = new StringBuilder();
+		StringBuilder deathMessage = new StringBuilder();
 		
+		switch(Teams.getTeamType(killer)) {
+		case GUARD:
+			prKiller.append(Teams.GuardPrefix);
+			break;
+		case BLUE:
+			prKiller.append(Teams.BluePrefix);
+			break;
+		case GREEN:
+			prKiller.append(Teams.GreenPrefix);
+			break;
+		case YELLOW:
+			prKiller.append(Teams.YellowPrefix);
+			break;
+		case RED:
+			prKiller.append(Teams.RedPrefix);
+			break;
+		case PINK:
+			prKiller.append(Teams.PinkPrefix);
+			break;
+		case PURPLE:
+			prKiller.append(Teams.PurplePrefix);
+			break;
+		default:
+			prKiller.append("[Speler] ");
+			break;	
+		}
+		prKiller.append(" ");
+		prKiller.append(killer.getDisplayName());
+		
+		switch(Teams.getTeamType(loser)) {
+		case GUARD:
+			prLoser.append(Teams.GuardPrefix);
+			break;
+		case BLUE:
+			prLoser.append(Teams.BluePrefix);
+			break;
+		case GREEN:
+			prLoser.append(Teams.GreenPrefix);
+			break;
+		case YELLOW:
+			prLoser.append(Teams.YellowPrefix);
+			break;
+		case RED:
+			prLoser.append(Teams.RedPrefix);
+			break;
+		case PINK:
+			prLoser.append(Teams.PinkPrefix);
+			break;
+		case PURPLE:
+			prLoser.append(Teams.PurplePrefix);
+			break;
+		default:
+			prLoser.append("[Speler]");
+			break;	
+		}
+		prLoser.append(" ");
+		prLoser.append(loser.getDisplayName());
+		
+		deathMessage.append(prLoser);
+		deathMessage.append(" is vermoord door ");
+		deathMessage.append(prKiller);
+		
+		e.setDeathMessage(deathMessage.toString());
 	}
 }

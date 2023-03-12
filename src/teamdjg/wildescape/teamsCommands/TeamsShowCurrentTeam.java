@@ -18,7 +18,7 @@ public class TeamsShowCurrentTeam extends SubCommand {
 	
 	@Override
 	public void onCommand(CommandSender sender, String[] args) {
-		sender.sendMessage(main.pluginPrefix + " Your current team: " + Teams.getTeamType((Player)sender));
+		sender.sendMessage(main.pluginPrefix + "Your current team: " + Teams.getTeamType((Player)sender));
 	}
 
 	@Override

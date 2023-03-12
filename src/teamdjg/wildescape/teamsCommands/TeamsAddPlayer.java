@@ -26,6 +26,7 @@ public class TeamsAddPlayer extends SubCommand {
 			String playerName = args [1];
 			String playerTeam = args [2];
 			Player target = Bukkit.getServer().getPlayerExact(playerName);
+			TeamsType team = null;
 			
 			if(target == null)
 			{
@@ -38,38 +39,56 @@ public class TeamsAddPlayer extends SubCommand {
 					Teams.addToTeam(TeamsType.GUARD, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to the Guards.");
+					team = TeamsType.GUARD;
 					break;
 				case "blue":
 					Teams.addToTeam(TeamsType.BLUE, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team BLUE.");
+					team = TeamsType.BLUE;
 					break;
 				case "green":
 					Teams.addToTeam(TeamsType.GREEN, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team GREEN.");
+					team = TeamsType.GREEN;
 				break;
 				case "red":
 					Teams.addToTeam(TeamsType.RED, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team RED.");
+					team = TeamsType.RED;
 					break;
 				case "yellow":
 					Teams.addToTeam(TeamsType.YELLOW, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team YELLOW.");
+					team = TeamsType.YELLOW;
 					break;
 				case "pink":
 					Teams.addToTeam(TeamsType.PINK, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team PINK.");
+					team = TeamsType.PINK;
 					break;
 				case "purple":
 					Teams.addToTeam(TeamsType.PURPLE, target);
 					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
 						"Player " + target.getName() + " succesfully added to team PURPLE.");
+					team = TeamsType.PURPLE;
+					break;
+				case "spectator":
+					Teams.addToTeam(TeamsType.SPECTATOR, target);
+					sender.sendMessage(main.pluginPrefix + ChatColor.GREEN +
+						"Player " + target.getName() + " succesfully added to the spectators.");
+					team = TeamsType.SPECTATOR;
 					break;
 				}
+				
+				main.playerTeams.replace(target.getUniqueId(), team);
+				main.getConfig().set("Team." + target.getUniqueId(), team.toString());
+				
+				main.saveConfig();
 			}
 		}
 		else if (args.length == 3)

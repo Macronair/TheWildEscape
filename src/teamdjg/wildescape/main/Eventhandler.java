@@ -54,8 +54,20 @@ public class Eventhandler implements Listener
 			e.getPlayer().setGameMode(GameMode.SPECTATOR);
 		}
 		
-		Player player = e.getPlayer();
-		player.setScoreboard(Teams.twe);
+		// Check if player is already in a team.
+		if(main.getConfig().contains("Team." + e.getPlayer().getUniqueId()))
+		{
+			main.playerTeams.put(e.getPlayer().getUniqueId(), TeamsType.valueOf(main.getConfig().getString("Team." + e.getPlayer().getUniqueId())));
+		}
+		else
+		{
+			main.playerTeams.put(e.getPlayer().getUniqueId(), TeamsType.SPECTATOR);
+			main.getConfig().set("Team." + e.getPlayer().getUniqueId(), TeamsType.SPECTATOR);
+			main.saveConfig();
+		}
+		
+		Teams.reloadTeams(main, main.playerTeams);
+		e.getPlayer().setScoreboard(Teams.twe);
 	}
 	
 	@EventHandler
@@ -64,6 +76,11 @@ public class Eventhandler implements Listener
 		if(main.playerRanks.containsKey(e.getPlayer().getUniqueId()))
 		{
 			main.playerRanks.remove(e.getPlayer().getUniqueId());
+		}
+		
+		if(main.playerTeams.containsKey(e.getPlayer().getUniqueId()))
+		{
+			main.playerTeams.remove(e.getPlayer().getUniqueId());
 		}
 		
 		Player player = e.getPlayer();
@@ -205,34 +222,37 @@ public class Eventhandler implements Listener
 		//		break;
 		//	}
 		//}
-		
-		switch(Teams.getTeamType(e.getPlayer())) {
-		case GUARD:
-			prefix = Teams.GuardPrefix + ChatColor.WHITE;
-			break;
-		case BLUE:
-			prefix = Teams.BluePrefix;
-			break;
-		case GREEN:
-			prefix = Teams.GreenPrefix;
-			break;
-		case YELLOW:
-			prefix = Teams.YellowPrefix;
-			break;
-		case RED:
-			prefix = Teams.RedPrefix;
-			break;
-		case PINK:
-			prefix = Teams.PinkPrefix;
-			break;
-		case PURPLE:
-			prefix = Teams.PurplePrefix;
-			break;
-		default:
-			prefix = ChatColor.GRAY + "[Speler]";
-			break;
+		if (Teams.getTeamType(e.getPlayer()) == null) {
+			prefix = ChatColor.GRAY + "[" + ChatColor.WHITE + "Speler" + ChatColor.GRAY + "]";
 		}
-		
+		else
+		{
+			switch(Teams.getTeamType(e.getPlayer())) {
+			case GUARD:
+				prefix = Teams.GuardPrefix + ChatColor.WHITE;
+				break;
+			case BLUE:
+				prefix = Teams.BluePrefix;
+				break;
+			case GREEN:
+				prefix = Teams.GreenPrefix;
+				break;
+			case YELLOW:
+				prefix = Teams.YellowPrefix;
+				break;
+			case RED:
+				prefix = Teams.RedPrefix;
+				break;
+			case PINK:
+				prefix = Teams.PinkPrefix;
+				break;
+			case PURPLE:
+				prefix = Teams.PurplePrefix;
+				break;
+			case SPECTATOR:
+				prefix = Teams.SpectatorPrefix;
+			}
+		}
 		chatPrefix.append(prefix);
 		chatPrefix.append(" ");
 		

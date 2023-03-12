@@ -1,15 +1,18 @@
 package teamdjg.wildescape.teams;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
+
+import teamdjg.wildescape.main.Main;
 
 public class Teams {
 
@@ -23,6 +26,7 @@ public class Teams {
 	public static Team sRed = twe.registerNewTeam("Red");
 	public static Team sPink = twe.registerNewTeam("Pink");
 	public static Team sPurple = twe.registerNewTeam("Purple");
+	public static Team sSpectator = twe.registerNewTeam("Spectator");
 	
 	public static String GuardPrefix = ChatColor.BLACK + "[" + ChatColor.DARK_RED + "Alpha Guard" + ChatColor.BLACK + "]" + ChatColor.GRAY;
 	public static String BluePrefix = ChatColor.GRAY + "[" + ChatColor.BLUE + "Blue" + ChatColor.GRAY + "]";
@@ -31,8 +35,10 @@ public class Teams {
 	public static String RedPrefix = ChatColor.GRAY + "[" + ChatColor.RED + "Red" + ChatColor.GRAY + "]";
 	public static String PinkPrefix = ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "Pink" + ChatColor.GRAY + "]";
 	public static String PurplePrefix = ChatColor.GRAY + "[" + ChatColor.DARK_PURPLE + "Purple" + ChatColor.GRAY + "]";
+	public static String SpectatorPrefix = ChatColor.GRAY + "[" + ChatColor.WHITE + "Spectator" + ChatColor.GRAY + "]";
 	
 	private static List<String> Guards = new ArrayList<String>();
+	private static List<String> Spectators = new ArrayList<String>();
 	private static List<String> teamBlue = new ArrayList<String>();
 	private static List<String> teamGreen = new ArrayList<String>();
 	private static List<String> teamYellow = new ArrayList<String>();
@@ -43,10 +49,11 @@ public class Teams {
 	public List<String> getGuards() {return Guards;}
 	public List<String> getTeamBlue() {return teamBlue;}
 	public List<String> getTeamGreen() {return teamGreen;}
-	public List<String> getTeamYellow() {return teamGreen;}
-	public List<String> getTeamRed() {return teamGreen;}
-	public List<String> getTeamPink() {return teamGreen;}
-	public List<String> getTeamPurple() {return teamGreen;}
+	public List<String> getTeamYellow() {return teamYellow;}
+	public List<String> getTeamRed() {return teamRed;}
+	public List<String> getTeamPink() {return teamPink;}
+	public List<String> getTeamPurple() {return teamPurple;}
+	public List<String> getSpectators() {return Spectators;}
 	
 	public static void addToTeam(TeamsType type, Player player) {
 		removeFromTeam(player);
@@ -54,35 +61,62 @@ public class Teams {
 			case GUARD:
 				Guards.add(player.getName());
 				sGuard.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + GuardPrefix);
 				break;
 			case BLUE:
 				teamBlue.add(player.getName());
 				sBlue.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + BluePrefix);
 				break;
 			case GREEN:
 				teamGreen.add(player.getName());
 				sGreen.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + GreenPrefix);
 				break;
 			case YELLOW:
 				teamYellow.add(player.getName());
 				sYellow.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + YellowPrefix);
 				break;
 			case RED:
 				teamRed.add(player.getName());
 				sRed.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + RedPrefix);
 				break;
 			case PINK:
 				teamPink.add(player.getName());
 				sPink.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + PinkPrefix);
 				break;
 			case PURPLE:
 				teamPurple.add(player.getName());
 				sPurple.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + PurplePrefix);
+				break;
+			case SPECTATOR:
+				Spectators.add(player.getName());
+				sSpectator.addEntry(player.getName());
+				
+				player.sendMessage(
+						ChatColor.GRAY + "You are currently in team " + SpectatorPrefix);
 				break;
 			}
 			
 		player.setScoreboard(twe);
-		//applyTeamColor(player);
 	}
 	
 	public static void removeFromTeam(Player player) {
@@ -93,6 +127,7 @@ public class Teams {
 		teamRed.remove(player.getName());
 		teamPink.remove(player.getName());
 		teamPurple.remove(player.getName());
+		Spectators.remove(player.getName());
 		
 		sGuard.removeEntry(player.getName());
 		sBlue.removeEntry(player.getName());
@@ -101,8 +136,58 @@ public class Teams {
 		sRed.removeEntry(player.getName());
 		sPink.removeEntry(player.getName());
 		sPurple.removeEntry(player.getName());
+		sSpectator.removeEntry(player.getName());
+	}
+	
+	public static void reloadTeams(Main main, HashMap<UUID,TeamsType> playerTeamVar) {
+		clearTeams();
+		if(playerTeamVar.isEmpty() == false)
+		{
+			playerTeamVar.clear();
+		}
 		
-		applyTeamColor(player);
+		for(Player p : Bukkit.getOnlinePlayers())
+		{
+			if(main.getConfig().contains("Team." + p.getUniqueId()))
+			{
+				playerTeamVar.put(p.getPlayer().getUniqueId(), TeamsType.valueOf(main.getConfig().getString("Team." + p.getUniqueId())));
+			}
+			else
+			{
+				playerTeamVar.put(p.getUniqueId(), TeamsType.SPECTATOR);
+				main.getConfig().set("Team." + p.getUniqueId(), TeamsType.SPECTATOR.toString());
+				main.saveConfig();
+			}
+			
+			TeamsType team = TeamsType.valueOf(main.getConfig().getString("Team." + p.getUniqueId()));
+			
+			switch (team) {
+			case GUARD:
+				addToTeam(TeamsType.GUARD, p);
+				break;
+			case BLUE:
+				addToTeam(TeamsType.BLUE, p);
+				break;
+			case GREEN:
+				addToTeam(TeamsType.GREEN, p);
+				break;
+			case YELLOW:
+				addToTeam(TeamsType.YELLOW, p);
+				break;
+			case RED:
+				addToTeam(TeamsType.RED, p);
+				break;
+			case PINK:
+				addToTeam(TeamsType.PINK, p);
+				break;
+			case PURPLE:
+				addToTeam(TeamsType.PURPLE, p);
+				break;
+			case SPECTATOR:
+				addToTeam(TeamsType.SPECTATOR, p);
+				break;
+			}
+		}
 	}
 	
 	public static void registerTeams() {
@@ -147,97 +232,12 @@ public class Teams {
 				ChatColor.GRAY + "] ");
 		sPurple.setAllowFriendlyFire(false);
 		sPurple.setColor(ChatColor.DARK_PURPLE);
-	}
-	
-	public static void applyTeamColor(Player player) {
-		if (getTeamType(player) == TeamsType.GUARD) {
-			player.setPlayerListName(
-					ChatColor.BLACK + "[" + 
-					ChatColor.DARK_RED + "ALPHA" +
-					ChatColor.BLACK + "] " +
-					ChatColor.DARK_RED + player.getName());
-			player.setDisplayName(
-					ChatColor.BLACK + "[" + 
-					ChatColor.DARK_RED + "Alpha Guard" +
-					ChatColor.BLACK + "] " +
-					ChatColor.WHITE + player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.BLUE) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.BLUE + "BL" +
-					ChatColor.GRAY + "] " +
-					ChatColor.BLUE + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.BLUE + "Blue" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.GREEN) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.GREEN + "GR" +
-					ChatColor.GRAY + "] " +
-					ChatColor.GREEN + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.GREEN + "Green" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.YELLOW) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.YELLOW + "YE" +
-					ChatColor.GRAY + "] " +
-					ChatColor.YELLOW + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.YELLOW + "Yellow" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.RED) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.RED + "RE" +
-					ChatColor.GRAY + "] " +
-					ChatColor.RED + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.RED + "Red" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.PINK) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.LIGHT_PURPLE + "PI" +
-					ChatColor.GRAY + "] " +
-					ChatColor.LIGHT_PURPLE + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.LIGHT_PURPLE + "Pink" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else if (getTeamType(player) == TeamsType.PURPLE) {
-			player.setPlayerListName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.DARK_PURPLE + "PU" +
-					ChatColor.GRAY + "] " +
-					ChatColor.DARK_PURPLE + player.getName());
-			player.setDisplayName(
-					ChatColor.GRAY + "[" + 
-					ChatColor.DARK_PURPLE + "Purple" +
-					ChatColor.GRAY + "] " +
-					player.getName());
-		}
-		else {
-			player.setPlayerListName(player.getName());
-			player.setDisplayName(player.getName());
-		}
+		
+		sSpectator.setPrefix(ChatColor.GRAY + "[" + 
+				ChatColor.WHITE + "X" +
+				ChatColor.GRAY + "] ");
+		sSpectator.setAllowFriendlyFire(false);
+		sSpectator.setColor(ChatColor.GRAY);
 	}
 	
 	public static boolean isInTeam(Player player) {
@@ -247,7 +247,8 @@ public class Teams {
 				|| teamYellow.contains(player.getName())
 				|| teamRed.contains(player.getName())
 				|| teamPink.contains(player.getName())
-				|| teamPurple.contains(player.getName());
+				|| teamPurple.contains(player.getName())
+				|| Spectators.contains(player.getName());
 	}
 	
 	public static void clearTeams() {
@@ -258,6 +259,7 @@ public class Teams {
 		teamRed.clear();
 		teamPink.clear();
 		teamPurple.clear();
+		Spectators.clear();
 	}
 	
 	public static List<String> getAllPlayersInTeams() {
@@ -269,6 +271,7 @@ public class Teams {
 		combinedTeams.addAll(teamRed);
 		combinedTeams.addAll(teamPink);
 		combinedTeams.addAll(teamPurple);
+		combinedTeams.addAll(Spectators);
 		return combinedTeams;
 		}
 	
@@ -296,6 +299,9 @@ public class Teams {
 		}
 		else if (teamPurple.contains(player.getName())) {
 			return TeamsType.PURPLE;
+		}
+		else if (Spectators.contains(player.getName())) {
+			return TeamsType.SPECTATOR;
 		}
 		else {
 			return null;

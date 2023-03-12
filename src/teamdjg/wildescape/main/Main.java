@@ -1,6 +1,5 @@
 package teamdjg.wildescape.main;
 
-
 import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
@@ -36,6 +35,7 @@ import teamdjg.wildescape.carepackage.commands.SetDroppingChance;
 import teamdjg.wildescape.carepackage.commands.SetPlayerRank;
 import teamdjg.wildescape.commandHandler.CommandManager;
 import teamdjg.wildescape.teams.Teams;
+import teamdjg.wildescape.teams.TeamsType;
 import teamdjg.wildescape.teamsCommands.TeamsAddPlayer;
 import teamdjg.wildescape.teamsCommands.TeamsRemovePlayer;
 import teamdjg.wildescape.teamsCommands.TeamsShowCurrentTeam;
@@ -83,6 +83,7 @@ public class Main extends JavaPlugin implements Listener
 	
 	public float chatHearingDistance = 0;
 	public HashMap<UUID,PlayerRank> playerRanks;
+	public HashMap<UUID,TeamsType> playerTeams;
 	//------------------------------------------------
 	
 	
@@ -91,7 +92,7 @@ public class Main extends JavaPlugin implements Listener
 	
 	//Command manager
 	public CommandManager commandManager;
-	
+
 	@Override
 	public void onEnable() 
 	{	
@@ -160,9 +161,10 @@ public class Main extends JavaPlugin implements Listener
 		// Management | Teams
 		Teams.clearTeams();
 		Teams.registerTeams();
+		playerTeams = new HashMap<UUID, TeamsType>();
+		Teams.reloadTeams(this, playerTeams);
 		
 		System.out.println(pluginPrefix + "PLUGIN ENABLED!");
-		
 	}
 	
 	@Override
